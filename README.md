@@ -2,7 +2,9 @@
   <img src="logo.png" alt="Jarvis One Logo" width="200">
 </p>
 
-# 🎙️ Jarvis-One ESP32
+<p align="center">
+  <img src="dashboard.png" alt="Dashboard Jarvis One" width="600">
+</p>
 
 
 ## 🖥️ Dashboard & Interfaccia
@@ -172,5 +174,6 @@ Entità disponibili in Home Assistant:
 ----------
 
 **Sviluppato con ❤️ per la community.**
+
 
 
