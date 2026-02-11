@@ -52,9 +52,14 @@
 ---
 
 ## 📦 Case 3D
-Il design estetico di Jarvis-One è fondamentale. I file STL per la stampa 3D sono stati realizzati da **@ImpatientMake_218274**. 
+Il design estetico di Jarvis-One è protetto da un case dedicato. I file necessari per la realizzazione fisica sono inclusi in questo repository.
+
+* **Modelli STL:** Disponibili nella cartella [`/stampa case 3D`](./stampa%20case%203D/)
+* **Designer:** [@ImpatientMake_218274](https://www.printables.com/@ImpatientMake_218274)
+* **Guida al montaggio:** Consulta il file PDF presente nella cartella per le tolleranze e i consigli sulla stampa.
+
 > [!TIP]
-> Si consiglia di stampare in PETG o PLA con un riempimento del 15% per una protezione ottimale dei componenti.
+> Per una finitura migliore, posiziona il lato del microfono vicino alle aperture del case per massimizzare la sensibilità della cattura vocale.
 
 ---
 
@@ -67,3 +72,4 @@ Il design estetico di Jarvis-One è fondamentale. I file STL per la stampa 3D so
 
 ## 📄 Licenza
 Questo progetto è rilasciato sotto licenza MIT. Senti libero di modificarlo e migliorarlo!
+
