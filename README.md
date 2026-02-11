@@ -1,3 +1,10 @@
+<p align="center">
+  <img src="logo.png" alt="Jarvis One Logo" width="200">
+</p>
+
+# 🎙️ Jarvis-One ESP32
+
+
 ## 🖥️ Dashboard & Interfaccia
 Ecco come si presenta l'interfaccia di controllo di Jarvis One:
 
@@ -165,4 +172,5 @@ Entità disponibili in Home Assistant:
 ----------
 
 **Sviluppato con ❤️ per la community.**
+
 
