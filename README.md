@@ -25,7 +25,7 @@ Il progetto è ottimizzato per **ESPHome 2026.x** e include meccanismi avanzati 
 ---
 
 ## 🖥️ Dashboard & Interfaccia
-Ecco come si presenta l'interfaccia di controllo di Jarvis One in Home Assistant:
+Ecco come si presenta l'interfaccia di controllo di Jarvis One sul webserver **jarvis-one.local**:
 
 <p align="center">
   <img src="images/dashboard.png" alt="Dashboard Jarvis One" width="600">
@@ -173,6 +173,7 @@ Entità disponibili in Home Assistant:
 ----------
 
 **Sviluppato con ❤️ per la community.**
+
 
 
 
