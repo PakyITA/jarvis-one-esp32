@@ -1,0 +1,181 @@
+# JARVIS-ONE: Open Source ESP32 Voice Assistant
+# Project: Voice Assistant with ESPHome & Home Assistant
+# Hardware: ESP32 DevKit, INMP441 (I2S Mic), LED on GPIO2
+
+substitutions:
+  # Adjust microphone sensitivity (1 to 5)
+  mic_gain_factor: "1"
+  # Voice Assistant sensitivity and filters
+  va_auto_gain: "10dBFS"
+  va_noise_suppression: "3"
+  va_volume_multiplier: "3.0"
+
+esphome:
+  name: jarvis-one
+  friendly_name: Jarvis One
+  on_boot:
+    priority: 600
+    then:
+      - light.turn_off: jarvis_led
+      - delay: 1s
+      - micro_wake_word.start
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Enable logging for debugging via USB
+logger:
+  level: DEBUG
+
+# HOME ASSISTANT API - Replace secrets or define them in your secrets.yaml
+api:
+  encryption:
+    key: !secret api_key
+
+# WIFI CONFIGURATION
+wifi:
+  ssid: "YOUR_WIFI_SSID"
+  password: "YOUR_WIFI_PASSWORD"
+  
+  # Manual IP for stability (Optional - can be removed for DHCP)
+  manual_ip:
+    static_ip: 192.168.x.x
+    gateway: 192.168.x.x
+    subnet: 255.255.255.0
+
+# Web Server for local monitoring
+web_server:
+  port: 80
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      inverted: true
+      mode: INPUT_PULLUP
+    name: "Manual Activation Button"
+    on_press:
+      then:
+        - if:
+            condition:
+              not: voice_assistant.is_running
+            then:
+              - micro_wake_word.stop
+              - voice_assistant.start
+
+output:
+  - platform: gpio
+    pin: GPIO2
+    id: led_jarvis_out
+
+light:
+  - platform: binary
+    name: "Status LED"
+    output: led_jarvis_out
+    id: jarvis_led
+
+# I2S AUDIO BUS (Standard pins for INMP441)
+i2s_audio:
+  - id: i2s_bus
+    i2s_lrclk_pin: GPIO27
+    i2s_bclk_pin: GPIO14
+
+microphone:
+  - platform: i2s_audio
+    id: va_mic
+    adc_type: external
+    i2s_din_pin: GPIO33
+    channel: left
+    i2s_audio_id: i2s_bus
+    sample_rate: 16000
+
+# WAKE WORD ENGINE
+micro_wake_word:
+  models:
+    - model: hey_jarvis
+      probability_cutoff: 0.5
+  microphone:
+    microphone: va_mic
+    gain_factor: ${mic_gain_factor}
+  on_wake_word_detected:
+    - voice_assistant.start
+
+# VOICE ASSISTANT PIPELINE
+voice_assistant:
+  id: va
+  microphone: va_mic
+  use_wake_word: true
+  auto_gain: ${va_auto_gain}
+  noise_suppression_level: ${va_noise_suppression}
+  volume_multiplier: ${va_volume_multiplier}
+  
+  on_listening:
+    - light.turn_on: jarvis_led
+    # SAFETY TIMER: Forces reset if session stays active for more than 8s
+    - delay: 8s
+    - if:
+        condition:
+          voice_assistant.is_running
+        then:
+          - logger.log: "Timeout reached: Resetting Jarvis"
+          - voice_assistant.stop
+          - light.turn_off: jarvis_led
+          - micro_wake_word.start
+
+  on_stt_end:
+    - text_sensor.template.publish:
+        id: jarvis_user_text
+        state: !lambda 'return x;'
+  
+  on_tts_start:
+    - text_sensor.template.publish:
+        id: jarvis_ai_text
+        state: !lambda 'return x;'
+
+  on_tts_end:
+    - text_sensor.template.publish:
+        id: jarvis_mp3_link
+        state: !lambda 'return x;'
+
+  on_end:
+    then:
+      - light.turn_off: jarvis_led
+      - wait_until:
+          not: voice_assistant.is_running
+      - micro_wake_word.start
+
+  on_error:
+    then:
+      - light.turn_off: jarvis_led
+      - voice_assistant.stop
+      - micro_wake_word.start
+
+# TEXT SENSORS FOR DASHBOARD
+text_sensor:
+  - platform: template
+    name: "User Question"
+    id: jarvis_user_text
+    icon: "mdi:account-voice"
+
+  - platform: template
+    name: "Jarvis Response"
+    id: jarvis_ai_text
+    icon: "mdi:robot-voice"
+
+  - platform: template
+    name: "Response Audio URL"
+    id: jarvis_mp3_link
+    icon: "mdi:play-circle"
+
+  - platform: template
+    name: "Audio Status"
+    id: jarvis_audio_status
+    lambda: |-
+      if (id(va).is_running()) {
+        return {"Active listening..."};
+      } else {
+        return {"Waiting (Hey Jarvis)"};
+      }
+    update_interval: 1s
