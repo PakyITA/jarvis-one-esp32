@@ -1,16 +1,6 @@
 <p align="center">
-  <img src="logo.png" alt="Jarvis One Logo" width="200">
+  <img src="images/logo.png" alt="Jarvis One Logo" width="200">
 </p>
-
-## 🖥️ Dashboard & Interfaccia
-Ecco come si presenta l'interfaccia di controllo di Jarvis One:
-<p align="center">
-  <img src="dashboard.png" alt="Dashboard Jarvis One" width="600">
-</p>
-
-
-## 🖥️ Dashboard & Interfaccia
-Ecco come si presenta l'interfaccia di controllo di Jarvis One:
 
 # 🎙️ Jarvis-One ESP32
 
@@ -30,7 +20,16 @@ Il progetto è ottimizzato per **ESPHome 2026.x** e include meccanismi avanzati 
 - 📡 **OTA Stabile**: Aggiornamenti wireless affidabili.
 - 🛟 **Recovery Mode Wi-Fi**: Access point automatico in caso di problemi di rete.
 - ⚙️ **Audio Ottimizzato**: Parametri calibrati per INMP441.
-- 🧠 **Gestione Intelligente Timeout**: Basata sul sistema interno ESPHome (senza timer manuali instabili).
+- 🧠 **Gestione Intelligente Timeout**: Basata sul sistema interno ESPHome.
+
+---
+
+## 🖥️ Dashboard & Interfaccia
+Ecco come si presenta l'interfaccia di controllo di Jarvis One in Home Assistant:
+
+<p align="center">
+  <img src="images/dashboard.png" alt="Dashboard Jarvis One" width="600">
+</p>
 
 ---
 
@@ -174,6 +173,7 @@ Entità disponibili in Home Assistant:
 ----------
 
 **Sviluppato con ❤️ per la community.**
+
 
 
 
