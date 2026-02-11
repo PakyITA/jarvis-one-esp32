@@ -1,0 +1,27 @@
+name: Telegram Release Notifier
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram Message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            🎙️ **Jarvis One: Nuovo Aggiornamento Disponibile!**
+            
+            Ciao, una nuova versione è stata rilasciata!
+            
+            📦 **Versione:** `${{ github.event.release.tag_name }}`
+            ✨ **Nome:** ${{ github.event.release.name }}
+            
+            🔗 [Apri la Release su GitHub](${{ github.event.release.html_url }})
+            
+            🦾 *Sviluppato da @PakyITA*
