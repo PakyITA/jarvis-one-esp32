@@ -68,15 +68,19 @@ binary_sensor:
               - voice_assistant.start
 
 # =========================
-# LED INTEGRATO ESP32-S3
+# LED RGB WS2812 INTEGRATO ESP32-S3 N16R8
 # =========================
 light:
-  - platform: status_led
+  - platform: esp32_rmt_led_strip
     name: "LED Jarvis"
     id: jarvis_led
-    pin:
-      number: GPIO38
-      inverted: true
+
+    pin: GPIO48
+    num_leds: 1
+    chipset: ws2812
+    rgb_order: GRB
+
+    restore_mode: ALWAYS_OFF
 
 # =========================
 # I2S BUS
