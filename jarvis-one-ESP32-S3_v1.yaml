@@ -75,8 +75,8 @@ light:
     name: "LED Jarvis"
     id: jarvis_led
     pin:
-      number: GPIO48
-      inverted: false
+      number: GPIO38
+      inverted: true
 
 # =========================
 # I2S BUS
