@@ -1,0 +1,201 @@
+substitutions:
+  mic_gain_factor: "3"
+  va_auto_gain: "15dBFS"
+  va_noise_suppression: "1"
+  va_volume_multiplier: "2.5"
+
+esphome:
+  name: jarvis-one
+  friendly_name: Jarvis One
+
+  on_boot:
+    priority: -100
+    then:
+      - delay: 10s
+      - micro_wake_word.start
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+# =========================
+# PSRAM (fondamentale su S3)
+# =========================
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG
+
+api:
+  encryption:
+    key: !secret api_key
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  power_save_mode: NONE
+  fast_connect: true
+
+  ap:
+    ssid: "Jarvis-Recovery"
+    password: "12345678"
+
+web_server:
+  port: 80
+
+# =========================
+# TASTO MANUALE
+# =========================
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO16
+      inverted: true
+      mode: INPUT_PULLUP
+    name: "Jarvis Tasto Manuale"
+
+    on_press:
+      then:
+        - if:
+            condition:
+              not: voice_assistant.is_running
+            then:
+              - micro_wake_word.stop
+              - voice_assistant.start
+
+# =========================
+# LED INTEGRATO ESP32-S3
+# =========================
+light:
+  - platform: status_led
+    name: "LED Jarvis"
+    id: jarvis_led
+    pin:
+      number: GPIO48
+      inverted: false
+
+# =========================
+# I2S BUS
+# =========================
+i2s_audio:
+  - id: i2s_bus
+    i2s_lrclk_pin: GPIO4
+    i2s_bclk_pin: GPIO5
+
+# =========================
+# MICROFONO INMP441
+# =========================
+microphone:
+  - platform: i2s_audio
+    id: va_mic
+    adc_type: external
+    i2s_din_pin: GPIO6
+    channel: left
+    i2s_audio_id: i2s_bus
+    sample_rate: 16000
+
+# =========================
+# SPEAKER MAX98357A
+# =========================
+speaker:
+  - platform: i2s_audio
+    id: va_speaker
+    i2s_audio_id: i2s_bus
+    dac_type: external
+    i2s_dout_pin: GPIO7
+    channel: mono
+
+# =========================
+# WAKE WORD
+# =========================
+micro_wake_word:
+  models:
+    - model: hey_jarvis
+      probability_cutoff: 0.7
+
+  microphone:
+    microphone: va_mic
+    gain_factor: ${mic_gain_factor}
+
+  on_wake_word_detected:
+    - voice_assistant.start
+
+# =========================
+# VOICE ASSISTANT
+# =========================
+voice_assistant:
+  id: va
+
+  microphone: va_mic
+  speaker: va_speaker
+  use_wake_word: true
+
+  auto_gain: ${va_auto_gain}
+  noise_suppression_level: ${va_noise_suppression}
+  volume_multiplier: ${va_volume_multiplier}
+
+  on_listening:
+    - light.turn_on: jarvis_led
+
+  on_stt_end:
+    - text_sensor.template.publish:
+        id: jarvis_user_text
+        state: !lambda 'return x;'
+
+  on_tts_start:
+    - text_sensor.template.publish:
+        id: jarvis_ai_text
+        state: !lambda 'return x;'
+
+  on_tts_end:
+    - text_sensor.template.publish:
+        id: jarvis_mp3_link
+        state: !lambda 'return x;'
+
+  on_end:
+    - light.turn_off: jarvis_led
+    - wait_until:
+        not: voice_assistant.is_running
+    - micro_wake_word.start
+
+  on_error:
+    - light.turn_off: jarvis_led
+    - voice_assistant.stop
+    - micro_wake_word.start
+
+# =========================
+# SENSORI TESTO
+# =========================
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "Jarvis IP"
+
+  - platform: template
+    name: "Jarvis - Tu"
+    id: jarvis_user_text
+    icon: "mdi:account-voice"
+
+  - platform: template
+    name: "Jarvis - Risposta"
+    id: jarvis_ai_text
+    icon: "mdi:robot-voice"
+
+  - platform: template
+    name: "Jarvis - Link Audio"
+    id: jarvis_mp3_link
+    icon: "mdi:play-circle"
+
+  - platform: template
+    name: "Jarvis Stato Audio"
+    lambda: |-
+      if (id(va).is_running()) {
+        return {"Ascolto attivo..."};
+      } else {
+        return {"In attesa (Hey Jarvis)"};
+      }
+    update_interval: 1s
