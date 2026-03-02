@@ -20,7 +20,7 @@ esp32:
     type: esp-idf
 
 # =========================
-# PSRAM (fondamentale su S3)
+# PSRAM (N16R8 = 8MB)
 # =========================
 psram:
   mode: octal
@@ -68,18 +68,16 @@ binary_sensor:
               - voice_assistant.start
 
 # =========================
-# LED RGB WS2812 INTEGRATO ESP32-S3 N16R8
+# LED RGB WS2812 INTEGRATO
 # =========================
 light:
   - platform: esp32_rmt_led_strip
     name: "LED Jarvis"
     id: jarvis_led
-
     pin: GPIO48
     num_leds: 1
     chipset: ws2812
     rgb_order: GRB
-
     restore_mode: ALWAYS_OFF
 
 # =========================
@@ -126,6 +124,10 @@ micro_wake_word:
     gain_factor: ${mic_gain_factor}
 
   on_wake_word_detected:
+    - light.turn_on:
+        id: jarvis_led
+        blue: 100%
+        brightness: 80%
     - voice_assistant.start
 
 # =========================
@@ -133,7 +135,6 @@ micro_wake_word:
 # =========================
 voice_assistant:
   id: va
-
   microphone: va_mic
   speaker: va_speaker
   use_wake_word: true
@@ -142,15 +143,32 @@ voice_assistant:
   noise_suppression_level: ${va_noise_suppression}
   volume_multiplier: ${va_volume_multiplier}
 
+  # 🎧 Ascolto
   on_listening:
-    - light.turn_on: jarvis_led
+    - light.turn_on:
+        id: jarvis_led
+        blue: 100%
+        brightness: 60%
 
+  # 🧠 Thinking
   on_stt_end:
+    - light.turn_on:
+        id: jarvis_led
+        red: 60%
+        blue: 100%
+        brightness: 50%
+
     - text_sensor.template.publish:
         id: jarvis_user_text
         state: !lambda 'return x;'
 
+  # 🗣 Speaking
   on_tts_start:
+    - light.turn_on:
+        id: jarvis_led
+        green: 100%
+        brightness: 80%
+
     - text_sensor.template.publish:
         id: jarvis_ai_text
         state: !lambda 'return x;'
@@ -160,14 +178,25 @@ voice_assistant:
         id: jarvis_mp3_link
         state: !lambda 'return x;'
 
+  # ✅ Fine ciclo
   on_end:
     - light.turn_off: jarvis_led
+
     - wait_until:
         not: voice_assistant.is_running
+
     - micro_wake_word.start
 
+  # 🚨 Errore
   on_error:
+    - light.turn_on:
+        id: jarvis_led
+        red: 100%
+        brightness: 100%
+
+    - delay: 2s
     - light.turn_off: jarvis_led
+
     - voice_assistant.stop
     - micro_wake_word.start
 
@@ -182,17 +211,17 @@ text_sensor:
   - platform: template
     name: "Jarvis - Tu"
     id: jarvis_user_text
-    icon: "mdi:account-voice"
+    icon: mdi:account-voice
 
   - platform: template
     name: "Jarvis - Risposta"
     id: jarvis_ai_text
-    icon: "mdi:robot-voice"
+    icon: mdi:robot-voice
 
   - platform: template
     name: "Jarvis - Link Audio"
     id: jarvis_mp3_link
-    icon: "mdi:play-circle"
+    icon: mdi:play-circle
 
   - platform: template
     name: "Jarvis Stato Audio"
